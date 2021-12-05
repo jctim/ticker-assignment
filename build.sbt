@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "ticker-assignment",
     libraryDependencies ++= scalaTest.map(_ % Test),
-    libraryDependencies ++= akkaHttp ++ circe ++ akkaHttpCirce ++ pureConfig ++ kafka ++ logback,
+    libraryDependencies ++= akkaHttp ++ circe ++ akkaHttpCirce ++ pureConfig ++ kafka ++ kafkaSerdeCirce ++ logback,
     scalacOptions ++= Seq(
       "-encoding",
       "utf8",
