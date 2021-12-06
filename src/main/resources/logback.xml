@@ -7,7 +7,7 @@
     </appender>
 
     <appender name="file" class="ch.qos.logback.core.FileAppender">
-        <file>logs/application.log</file>
+        <file>${LOG_DIR:-logs}/application.log</file>
         <append>false</append>
         
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">

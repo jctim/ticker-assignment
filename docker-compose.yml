@@ -28,3 +28,14 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
+  ticker:
+    image: ticker-assignment:0.1.0-SNAPSHOT
+    hostname: ticker
+    container_name: ticker
+    volumes:
+      - ${PWD}/logs:/tmp/logs
+    depends_on:
+      - broker
+    environment:
+      BOOTSTRAP_SERVERS: broker:9092
+      LOG_DIR: /tmp/logs

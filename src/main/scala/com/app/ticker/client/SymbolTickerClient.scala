@@ -71,6 +71,7 @@ class SymbolTickerClient(ticketApiConfig: TickerApiConfig)(implicit
 
     val flow: Flow[Message, (String, TickerData), NotUsed] =
       Flow[Message]
+        .collect { case textMsg: TextMessage => textMsg }
         .mapAsync(1) {
           case TextMessage.Strict(text)         =>
             Future
@@ -117,11 +118,6 @@ class SymbolTickerClient(ticketApiConfig: TickerApiConfig)(implicit
       logger.debug(s"Pinging msg : $pingInterval.")
       ws ! TextMessage.Strict(pingMsg.asJson.noSpaces)
     }
-
-    // in a real application you would not side effect here
-    // and handle errors more carefully
-    // connected.onComplete(println)
-    // closed.foreach(_ => println("closed"))
 
     connected
   }
