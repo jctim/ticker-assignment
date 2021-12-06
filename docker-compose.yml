@@ -37,5 +37,6 @@ services:
     depends_on:
       - broker
     environment:
+      JAVA_OPTS: "-Duser.timezone=UTC"
       BOOTSTRAP_SERVERS: broker:9092
       LOG_DIR: /tmp/logs

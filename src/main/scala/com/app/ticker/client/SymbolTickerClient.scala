@@ -11,7 +11,7 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
 import akka.{Done, NotUsed}
 import com.app.ticker.client.model.Request.{PingMessage, WsConnectionDetails, WsSubscribeToTopic}
-import com.app.ticker.client.model.Response.{TickerData, TickerMessage, WsResponse}
+import com.app.ticker.client.model.Response.{PongMessage, TickerData, TickerMessage, WsResponse}
 import com.app.ticker.client.model.{Request, Response}
 import com.app.ticker.core.TickerApiConfig
 import com.app.ticker.util.Logging
@@ -87,6 +87,12 @@ class SymbolTickerClient(ticketApiConfig: TickerApiConfig)(implicit
             .map(logIt("decoded response", DEBUG))
             .toTry
         }
+        .map { // Just logging of Pong messages
+          case pong @ Success(_: PongMessage) =>
+            logger.info("WS Ponged")
+            pong
+          case other                          => other
+        }
         .collect { case Success(TickerMessage(_, subject, data, _)) => (subject, data) }
 
     val ((ws, upgradeResponse), _) =
@@ -99,7 +105,7 @@ class SymbolTickerClient(ticketApiConfig: TickerApiConfig)(implicit
 
     val connected = upgradeResponse.flatMap { upgrade =>
       if (upgrade.response.status == StatusCodes.SwitchingProtocols) {
-        logger.info("!CONNECTED!")
+        logger.info("Connected to WS")
         Future.successful(Done)
       } else {
         throw new RuntimeException(s"Connection failed: ${upgrade.response.status}")
@@ -115,7 +121,7 @@ class SymbolTickerClient(ticketApiConfig: TickerApiConfig)(implicit
     //   }
     // )
     Source.tick(pingInterval / 2, pingInterval, Done).runForeach { _ =>
-      logger.debug(s"Pinging msg : $pingInterval.")
+      logger.info("Pinging WS")
       ws ! TextMessage.Strict(pingMsg.asJson.noSpaces)
     }
 

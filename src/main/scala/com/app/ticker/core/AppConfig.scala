@@ -4,17 +4,17 @@ import akka.http.scaladsl.model.Uri
 import akka.http.scaladsl.model.Uri.Path
 import com.typesafe.config.Config
 
-import scala.concurrent.duration.FiniteDuration
-
-case class AppConfig(kafka: KafkaConfig, tickerApi: TickerApiConfig)
-
-case class KafkaConfig(
-    producer: Config,
-    consumer: Config,
-    tickerTopicName: String
+case class AppConfig(
+    tickerApi: TickerApiConfig,
+    tickerProducer: TickerProducerConfig,
+    tickerConsumer: TickerConsumerConfig,
+    tickerAlertStream: TickerAlertStreamConfig
 )
 
 case class TickerApiConfig(baseUrl: Uri, publicTokenPath: Path)
+case class TickerProducerConfig(kafka: Config, topicName: String)
+case class TickerConsumerConfig(kafka: Config, topicName: String)
+case class TickerAlertStreamConfig(kafka: Config, srcTopicName: String, dstTopicName: String)
 
 object AppConfig {
   import pureconfig._

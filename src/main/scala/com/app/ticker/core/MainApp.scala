@@ -7,7 +7,7 @@ import akka.stream.scaladsl.Flow
 import com.app.ticker.client.SymbolTickerClient
 import com.app.ticker.client.model.Request.WsConnectionDetails
 import com.app.ticker.client.model.Response.TickerData
-import com.app.ticker.pubsub.TickerDataPublisher
+import com.app.ticker.pubsub.{TickerAlertingStream, TickerDataPublisher}
 import com.app.ticker.pubsub.model.{Prices, Ticker, TickerName}
 import com.app.ticker.util.Logging
 
@@ -26,7 +26,8 @@ object MainApp extends App with Logging {
   logger.info("Init App Components")
   val config = AppConfig()
   val tickerApi = new SymbolTickerClient(config.tickerApi)
-  val producer = new TickerDataPublisher(config.kafka.tickerTopicName, config.kafka.producer)(system.dispatchers.lookup("blocking-io-dispatcher"))
+  val producer = new TickerDataPublisher(config.tickerProducer)(system.dispatchers.lookup("blocking-io-dispatcher"))
+  val tickerAlertStream = new TickerAlertingStream(config.tickerAlertStream)
 
   val tickerDataFlow = Flow[(String, TickerData)]
     .map { case (subject, data) => (TickerName(subject), Ticker(Prices(data.bestBid, data.bestAsk), data.size)) }
@@ -42,6 +43,7 @@ object MainApp extends App with Logging {
                        publicDetails.data.instanceServers.head.pingInterval.millis
                      )
     _             <- tickerApi.connectToWs(wsConnection, connectId, tickerDataFlow)
+    _             <- tickerAlertStream.start()
   } yield ()
 
   logger.info("Waiting for terminating")
